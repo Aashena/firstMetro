@@ -6,6 +6,8 @@ import android.util.DisplayMetrics;
 import android.view.View;
 
 import com.example.mostafa.metrogame.objects.Ball;
+import com.example.mostafa.metrogame.objects.Basket;
+import com.example.mostafa.metrogame.objects.Divider;
 import com.example.mostafa.metrogame.views.MyView;
 
 public class MainActivity extends AppCompatActivity {
@@ -16,12 +18,16 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         fullScreen();
         getScreenSize();
+        Divider divider= new Divider(width,height);
+
         Ball ball=new Ball(width,height);
 
-        MyView myView= new MyView(this,ball);
+        Basket basket1 = new Basket(ball.getSize(), true , width , height);
+        Basket basket2 = new Basket (ball.getSize(),false, width, height);
+        MyView myView= new MyView(this,ball,divider, basket1 , basket2 ,width,height);
         setContentView(myView);
 
-        ball.execute(ball);
+        ball.execute(ball,divider,basket1,basket2);
     }
 
     private void fullScreen(){

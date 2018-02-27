@@ -80,6 +80,7 @@ public class Ball extends AsyncTask<Object,Object,Object> implements View.OnTouc
 
     @Override
     protected Object doInBackground(Object... params) {
+        boolean changeDividerColor=false;
         Ball myball=(Ball) params[0];
         double x= myball.getX();
         double y = myball.getY();
@@ -89,6 +90,40 @@ public class Ball extends AsyncTask<Object,Object,Object> implements View.OnTouc
         int h=myball.getH();
         int w=myball.getW();
         int size = myball.getSize();
+        Divider divider=(Divider) params[1];
+        int dividersX=0;
+        int dividersY=0;
+        int dividersThick=0;
+        if(divider!=null)
+        {
+            dividersX =divider.getX();
+            dividersY = divider.getY();
+            dividersThick = divider.getThick();
+        }
+        Basket basket1 = (Basket) params[2];
+        int b1xl=0;
+        int b1xr=0;
+        int b1yt=0;
+        int b1Size=0;
+        if(basket1!=null)
+        {
+            b1xl=basket1.getXL();
+            b1xr=basket1.getXR();
+            b1yt=basket1.getYT();
+            b1Size=basket1.getSize();
+        }
+        Basket basket2 = (Basket) params[3];
+        int b2xl=0;
+        int b2xr=0;
+        int b2yt=0;
+        int b2Size=0;
+        if(basket2!=null)
+        {
+            b2xl=basket2.getXL();
+            b2xr=basket2.getXR();
+            b2yt=basket2.getYT();
+            b2Size=basket2.getSize();
+        }
 
         while (isMoving==true) {
             if(directionChanged()) {
@@ -96,7 +131,7 @@ public class Ball extends AsyncTask<Object,Object,Object> implements View.OnTouc
                 vy = myball.getVy();
             }
             if(Math.abs(vy)>0.02 || y<h-size)
-                vy=vy+0.01;
+                vy=vy+0.015;
             else
                 vy=0;
             x = x + vx;
@@ -107,7 +142,6 @@ public class Ball extends AsyncTask<Object,Object,Object> implements View.OnTouc
 //                    Log.d(TAG,"vx:"+String.valueOf(vx));
                     vx = -vx;
                     vx = vx - vx/10;
-//                    Log.d(TAG, "touch by y");
 //                    Log.d(TAG, "touch by x");
 
                 }
@@ -138,13 +172,116 @@ public class Ball extends AsyncTask<Object,Object,Object> implements View.OnTouc
 //                    Log.d(TAG, "touch by y");
                 }
             }
+            if(divider != null) {
+                if (y >= dividersY - size && x >= dividersX - size && x <= dividersX + dividersThick + size) { //divider
+                    if (y >= dividersY) {
+                        if (x <= dividersX + dividersThick + size && x > dividersX + dividersThick) {
+                            if (vx < 0) {
+//                    Log.d(TAG,"vx:"+String.valueOf(vx));
+                                vx = -vx;
+                                vx = vx - vx / 10;
+                                Log.d(TAG, "touch by divider's right");
+                                changeDividerColor = true;
+
+//                    Log.d(TAG, "touch by x");
+
+                            }
+                        } else if (x >= dividersX - size && x < dividersX) {
+                            if (vx > 0) {
+                                vx = -vx;
+                                vx = vx - vx / 10;
+                                Log.d(TAG, "touch by divider's left");
+                                changeDividerColor = true;
+                            }
+                        }
+                    } else if (x >= dividersX && x < dividersX + dividersThick) {
+                        if (y >= dividersY - size) {
+                            if (vy > 0) {
+                                if (Math.abs(vy) > 0.02) {
+                                    vy = -vy;
+                                    vy = vy - vy / 10;
+                                    Log.d(TAG, "touch by divider's Top");
+                                    changeDividerColor = true;
+                                } else
+                                    vy = 0;
+                            }
+                        }
+                    } else {
+                        int forceArowX;
+                        int forceArowY = (int) y - (dividersY);
+                        if (x > w / 2)
+                            forceArowX = (int) x - (dividersX + dividersThick);
+                        else
+                            forceArowX = (int) x - (dividersX);
+                        double forceArowLen = Math.hypot(forceArowX, forceArowY);
+                        double fX, fY;
+                        if (forceArowLen <= size) {
+                            fX = ((vx * forceArowX) + (vy * forceArowY)) / (forceArowLen * forceArowLen) * forceArowX;
+                            fY = ((vx * forceArowX) + (vy * forceArowY)) / (forceArowLen * forceArowLen) * forceArowY;
+                            if (fX * forceArowX < 0 || fY * forceArowY < 0) {
+                                vx = vx - 2 * fX;
+                                vy = vy - 2 * fY;
+                                vy = vy - vy / 10;
+                                vx = vx - vx / 10;
+                            }
+                        }
+                    }
+                }
+            }
+            if(basket1!=null) { //basket1
+                if (x >= b1xl - size && x <= b1xr + size && y >= b1yt - size && y <= b1yt + b1Size + size) {
+                    int forceArowX;
+                    int forceArowY = (int) y - (b1yt);
+                    if (x > (b1xl + b1xr) / 2)
+                        forceArowX = (int) x - (b1xr);
+                    else
+                        forceArowX = (int) x - (b1xl);
+                    double forceArowLen = Math.hypot(forceArowX, forceArowY);
+                    double fX, fY;
+                    if (forceArowLen <= size) {
+                        fX = ((vx * forceArowX) + (vy * forceArowY)) / (forceArowLen * forceArowLen) * forceArowX;
+                        fY = ((vx * forceArowX) + (vy * forceArowY)) / (forceArowLen * forceArowLen) * forceArowY;
+                        if (fX * forceArowX < 0 || fY * forceArowY < 0) {
+                            vx = vx - 2 * fX;
+                            vy = vy - 2 * fY;
+                            vy = vy - vy / 10;
+                            vx = vx - vx / 10;
+                        }
+                    }
+                }
+            }
+            if(basket2!=null) { //basket2
+                if (x >= b2xl - size && x <= b2xr + size && y >= b2yt - size && y <= b2yt + b2Size + size) {
+                    int forceArowX;
+                    int forceArowY = (int) y - (b2yt);
+                    if (x > (b2xl + b2xr) / 2)
+                        forceArowX = (int) x - (b2xr);
+                    else
+                        forceArowX = (int) x - (b2xl);
+                    double forceArowLen = Math.hypot(forceArowX, forceArowY);
+                    double fX, fY;
+                    if (forceArowLen <= size) {
+                        fX = ((vx * forceArowX) + (vy * forceArowY)) / (forceArowLen * forceArowLen) * forceArowX;
+                        fY = ((vx * forceArowX) + (vy * forceArowY)) / (forceArowLen * forceArowLen) * forceArowY;
+                        if (fX * forceArowX < 0 || fY * forceArowY < 0) {
+                            vx = vx - 2 * fX;
+                            vy = vy - 2 * fY;
+                            vy = vy - vy / 10;
+                            vx = vx - vx / 10;
+                        }
+                    }
+                }
+            }
+
+
 
             try {
                 Thread.sleep(1);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            publishProgress(x, y);
+            publishProgress(x, y,changeDividerColor);
+            changeDividerColor=false;
         }
         return null;
     }
@@ -154,6 +291,8 @@ public class Ball extends AsyncTask<Object,Object,Object> implements View.OnTouc
         x = (double) values[0];
         y = (double) values[1];
         view.invalidate((int)x-ballSize-1,(int)y-ballSize-1,(int)x+ballSize+1,(int)y+ballSize+1);
+        if((boolean)values[2])
+            view.changeDividerColor();
     }
     @Override
     public boolean onTouch(View v, MotionEvent event) {
